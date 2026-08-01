@@ -1,0 +1,20 @@
+#!/bin/bash
+# /usr/bin/salomos-set-wallpaper — change desktop wallpaper for all users
+set -e
+IMG="${1:-/usr/share/backgrounds/salomos/wallpaper.png}"
+
+# Apply for the current user (root or sudo caller)
+USER_HOME=$(getent passwd "${SUDO_USER:-$USER}" | cut -d: -f6)
+
+# Use Plasma 6's plasma-apply-wallpaperimage if available, otherwise DBus
+if command -v plasma-apply-wallpaperimage >/dev/null; then
+  plasma-apply-wallpaperimage "$IMG"
+fi
+
+# Also write to ~/.config/plasma-org.kde.plasma.desktop-appletsrc for persistence
+sudo -u "${SUDO_USER:-$USER}" bash -c "kwriteconfig6 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 1 --group Wallpaper --group org.kde.image --group General --key Image '$IMG'"
+
+# Also make it the default for new users
+cp -f "$IMG" /usr/share/backgrounds/salomos/wallpaper.png
+
+echo "Wallpaper set: $IMG"

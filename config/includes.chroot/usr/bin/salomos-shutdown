@@ -1,0 +1,11 @@
+#!/bin/bash
+# /usr/bin/salomos-shutdown — graceful power menu
+CHOICE=$(echo -e "Lock\nLogout\nRestart\nShutdown" | rofi -dmenu -p "Power" -theme ~/.config/rofi/power.rasi 2>/dev/null || \
+         echo -e "Lock\nLogout\nRestart\nShutdown" | zenity --list --title="Power" --column="Action" 2>/dev/null)
+
+case "$CHOICE" in
+  Lock)     loginctl lock-session ;;
+  Logout)   loginctl terminate-user "$USER" ;;
+  Restart)  systemctl reboot ;;
+  Shutdown) systemctl poweroff ;;
+esac

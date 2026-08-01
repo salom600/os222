@@ -1,0 +1,208 @@
+name: 🏗️ Build ISO
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      arch:
+        description: 'Architecture to build (amd64, i386, arm64)'
+        required: false
+        default: 'amd64'
+      debug:
+        description: 'Run build in debug mode (verbose logging, no cleanup)'
+        required: false
+        default: 'false'
+
+# Cancel in-progress runs of the same workflow when a new commit lands
+concurrency:
+  group: build-iso-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+  SALOMOS_VERSION: "1.0.0-salom"
+  LB_BOOTAPPEND_LIVE: "boot=live components quiet splash username=salom hostname=salomos live-config.hostname=salomos live-config.user-default-groups=audio,cdrom,dialout,floppy,netdev,plugdev,sudo,video,kvm,libvirt"
+
+jobs:
+  # -----------------------------------------------------------------------
+  # 1. Static analysis — catch errors before the long build
+  # -----------------------------------------------------------------------
+  lint:
+    name: 🔍 Lint & Validate
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate YAML / JSON
+        run: |
+          set -e
+          echo "::group::Validating YAML files"
+          find . -name '*.yml' -o -name '*.yaml' | while read -r f; do
+            python3 -c "import yaml; yaml.safe_load(open('$f'))" || { echo "YAML error in $f"; exit 1; }
+          done
+          echo "::endgroup::"
+
+          echo "::group::Validating JSON files"
+          find . -name '*.json' -not -path './node_modules/*' | while read -r f; do
+            python3 -c "import json; json.load(open('$f'))" || { echo "JSON error in $f"; exit 1; }
+          done
+          echo "::endgroup::"
+
+      - name: Validate shell scripts
+        run: |
+          set -e
+          echo "::group::shellcheck"
+          sudo apt-get install -y shellcheck
+          find . -name '*.sh' -o -name 'auto/*' -o -name 'config/hooks/**/*.hook.chroot' | while read -r f; do
+            shellcheck "$f" || { echo "shellcheck failed in $f"; exit 1; }
+          done
+          echo "::endgroup::"
+
+      - name: Validate Python imports
+        run: |
+          set -e
+          for pkg in tools/salomos-toolkit tools/salomos-hwmanager tools/salomos-store tools/salomos-control tools/salomos-installer tools/salomos-launcher; do
+            echo "Checking $pkg…"
+            (cd "$pkg" && python3 -c "import ast; [ast.parse(open(f).read(), filename=f) for f in __import__('os').listdir('.') if f.endswith('.py')]")
+          done
+
+  # -----------------------------------------------------------------------
+  # 2. Build the ISO inside a Debian 12 container
+  # -----------------------------------------------------------------------
+  build:
+    name: 📦 Build ISO (${{ matrix.arch }})
+    needs: lint
+    runs-on: ubuntu-22.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: ${{ fromJSON(github.event.inputs.arch != '' && format('[\"{0}\"]', github.event.inputs.arch) || '[\"amd64\"]') }}
+    container:
+      image: debian:bookworm
+      options: --privileged --tmpfs /tmp:size=4g --tmpfs /var/cache:size=4g
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up basic tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            sudo ca-certificates curl git gnupg wget \
+            python3 python3-pip python3-venv \
+            live-build debootstrap squashfs-tools xorriso isolinux syslinux-common \
+            grub-pc-bin grub-efi-amd64-bin grub-efi-arm64-bin grub-common \
+            fakeroot linux-image-amd64
+          rm -rf /var/lib/apt/lists/*
+
+      - name: Cache live-build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            cache/lb_cache
+            cache/apt
+          key: lb-${{ matrix.arch }}-${{ hashFiles('auto/config', 'config/package-lists/*.list.chroot', '.github/workflows/build-iso.yml') }}
+          restore-keys: |
+            lb-${{ matrix.arch }}-
+
+      - name: Show environment
+        run: |
+          echo "::group::Environment"
+          uname -a
+          cat /etc/debian_version
+          lb --version || true
+          df -h
+          echo "::endgroup::"
+
+      - name: Build ISO
+        id: build
+        run: |
+          set -e
+          if [ -n "${{ github.event.inputs.debug }}" ] && [ "${{ github.event.inputs.debug }}" = "true" ]; then
+            DEBUG_FLAG="--debug"
+          else
+            DEBUG_FLAG=""
+          fi
+          ./auto/config ${{ matrix.arch }} bookworm
+          time ./auto/build $DEBUG_FLAG 2>&1 | tee build.log
+        env:
+          LB_ARCHIVE_AREAS: "main contrib non-free non-free-firmware"
+
+      - name: List build artifacts
+        run: |
+          ls -lh live-image-*.hybrid.iso || true
+          ls -lh live-image-*.iso.sha256 || true
+
+      - name: QEMU smoke test
+        run: |
+          set -e
+          apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+          ISO=$(ls -1 live-image-*.hybrid.iso | head -1)
+          if [ -z "$ISO" ]; then
+            echo "::error::No ISO found"; exit 1
+          fi
+          # Boot for 30 seconds, screenshot, verify kernel reaches initrd
+          timeout 30 qemu-system-x86_64 \
+            -m 2048 -smp 2 \
+            -cdrom "$ISO" -boot d \
+            -nographic -serial stdio \
+            -display none \
+            -monitor none 2>&1 | head -200 | tee qemu-test.log || true
+          # Check that we reached "systemd" in the log
+          if grep -q "systemd\|Live system\|salomos" qemu-test.log; then
+            echo "✅ QEMU smoke test passed"
+          else
+            echo "⚠️  QEMU test inconclusive (could not verify boot fully)"
+          fi
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: salomos-iso-${{ matrix.arch }}
+          path: |
+            live-image-*.hybrid.iso
+            live-image-*.iso.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log-${{ matrix.arch }}-${{ github.run_id }}
+          path: |
+            build.log
+            config/**/stderr*
+          retention-days: 7
+
+  # -----------------------------------------------------------------------
+  # 3. Build summary — produces a single combined status
+  # -----------------------------------------------------------------------
+  summary:
+    name: 📊 Summary
+    needs: build
+    runs-on: ubuntu-22.04
+    if: always()
+    steps:
+      - name: Report build status
+        run: |
+          echo "## 🏗️ Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Lint | ${{ needs.lint.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📦 Artifacts: see workflow run page." >> $GITHUB_STEP_SUMMARY

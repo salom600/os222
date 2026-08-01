@@ -1,0 +1,55 @@
+#!/bin/sh
+# 0006-configure-flatpak.hook.chroot
+# Add the Flathub remote for the SalomOS Store.
+set -e
+
+echo "[0006] Configuring Flatpak remotes..."
+
+# Use the system bus path because chroot might lack dbus
+if [ -x /usr/bin/flatpak ]; then
+  flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+  flatpak remote-add --if-not-exists flathub-beta https://flathub.org/beta-repo/flathub-beta.flatpakrepo
+fi
+
+# Pre-install common Flatpak runtimes so the Store can offer apps offline
+mkdir -p /var/lib/flatpak
+
+# Pre-register a curated list of Flatpak apps — actual install happens in Store on first click
+# (we keep the ISO small)
+cat > /etc/salomos/curated-flatpaks.list <<'EOF'
+# SalomOS Store — curated apps
+# Format: flatpak-id | category | description
+org.mozilla.firefox|Browser|Mozilla Firefox web browser
+org.chromium.Chromium|Browser|Chromium web browser
+com.google.Chrome|Browser|Google Chrome (proprietary)
+com.brave.Browser|Browser|Brave privacy browser
+com.github.tchx84.Flatseal|System|Manage Flatpak permissions
+com.mattjakeman.ExtensionManager|System|Manage GNOME extensions
+org.gimp.GIMP|Graphics|The GNU Image Manipulation Program
+org.inkscape.Inkscape|Graphics|Vector graphics editor
+org.kde.krita|Graphics|Digital painting
+org.kde.dolphin|Files|KDE file manager
+org.kde.gwenview|Graphics|Image viewer
+org.kde.okular|Office|KDE document viewer
+org.libreoffice.LibreOffice|Office|The office productivity suite
+com.visualstudio.code|Development|VS Code
+io.github.qalculate.qalculate-gtk|Office|Advanced calculator
+org.qbittorrent.qBittorrent|Network|BitTorrent client
+com.transmissionbt.Transmission|Network|BitTorrent client
+org.kde.kdenlive|Video|Non-linear video editor
+org.blender.Blender|Graphics|3D creation suite
+org.audacityteam.Audacity|Audio|Audio editor
+org.videolan.VLC|Video|Media player
+io.celluloid.Player.Video|Video|Celluloid video player
+com.valvesoftware.Steam|Games|Steam gaming platform
+net.lutris.Lutris|Games|Open gaming platform
+org.libretro.RetroArch|Games|Libretro frontend
+org.PrismLauncher.PrismLauncher|Games|Minecraft launcher
+com.heroicgameslauncher.hgl|Games|Heroic Games Launcher
+org.telegram.desktop|Chat|Telegram Desktop
+im.riot.Riot|Chat|Element Matrix client
+org.signal.Signal|Chat|Signal Desktop
+fr.handymusic.maim|Graphics|MIDI routing
+EOF
+
+echo "[0006] Flatpak configured."

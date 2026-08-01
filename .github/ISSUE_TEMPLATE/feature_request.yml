@@ -1,0 +1,22 @@
+name: Feature Request
+description: Suggest a new feature.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's the problem?
+      description: "What are you trying to do that doesn't work?"
+  - type: textarea
+    id: solution
+    attributes:
+      label: What do you want to happen?
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What alternatives have you considered?
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else?

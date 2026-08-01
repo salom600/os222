@@ -1,0 +1,31 @@
+#!/bin/sh
+# 0011-install-salomos-python.hook.chroot
+# Install all the salomos-* Python packages into the chroot.
+set -e
+
+echo "[0011] Installing SalomOS Python packages..."
+
+# Source the project root from live-build's view
+PROJECT_ROOT="/usr/share/salomos/project"
+
+# live-build's hook context provides $PWD but not the project root.
+# We embed via includes.chroot/usr/share/salomos/project.
+if [ ! -d "$PROJECT_ROOT" ]; then
+  echo "ERROR: $PROJECT_ROOT not found — SalomOS Python packages not bundled" >&2
+  exit 1
+fi
+
+# Install via pip in editable mode
+for pkg in toolkit hwmanager store control installer launcher; do
+  if [ -d "$PROJECT_ROOT/tools/salomos-$pkg" ]; then
+    cd "$PROJECT_ROOT/tools/salomos-$pkg" || continue
+    pip3 install --break-system-packages --no-cache-dir --no-deps -e . 2>/dev/null || \
+    pip3 install --no-cache-dir --no-deps -e . 2>/dev/null || \
+    pip3 install --no-cache-dir --no-deps . 2>/dev/null || true
+  fi
+done
+
+# Make sure our /usr/bin wrappers are exec
+chmod +x /usr/bin/salomos-* 2>/dev/null || true
+
+echo "[0011] SalomOS Python packages installed."

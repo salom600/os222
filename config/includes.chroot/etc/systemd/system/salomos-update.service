@@ -1,0 +1,9 @@
+[Unit]
+Description=SalomOS auto-update (one-shot)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/salomos-update
+TimeoutStartSec=1800

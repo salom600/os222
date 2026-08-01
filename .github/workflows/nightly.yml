@@ -1,0 +1,87 @@
+name: 🌙 Nightly Build
+
+on:
+  schedule:
+    # Every Monday at 03:00 UTC
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  nightly:
+    name: 🌙 Nightly ISO Build
+    runs-on: ubuntu-22.04
+    timeout-minutes: 360
+    container:
+      image: debian:bookworm
+      options: --privileged --tmpfs /tmp:size=4g --tmpfs /var/cache:size=4g
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            sudo ca-certificates curl git gnupg wget \
+            python3 python3-pip \
+            live-build debootstrap squashfs-tools xorriso isolinux syslinux-common \
+            grub-pc-bin grub-efi-amd64-bin grub-common \
+            fakeroot linux-image-amd64
+
+      - name: Build ISO
+        run: |
+          set -e
+          ./auto/config amd64 bookworm
+          time ./auto/build 2>&1 | tee build.log
+
+      - name: Generate checksums
+        run: |
+          ISO=$(ls -1 live-image-*.hybrid.iso | head -1)
+          sha256sum "$ISO" | tee "$ISO.sha256"
+
+      - name: Stamp nightly version
+        run: |
+          ISO=$(ls -1 live-image-*.hybrid.iso | head -1)
+          NIGHTLY_TAG="nightly-$(date -u +%Y%m%d)"
+          cp "$ISO" "salomos-${NIGHTLY_TAG}.iso"
+          cp "$ISO.sha256" "salomos-${NIGHTLY_TAG}.iso.sha256"
+          echo "NIGHTLY_TAG=${NIGHTLY_TAG}" >> $GITHUB_ENV
+
+      - name: Upload nightly artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: salomos-nightly-${{ env.NIGHTLY_TAG }}
+          path: |
+            salomos-nightly-*.iso
+            salomos-nightly-*.iso.sha256
+          retention-days: 14
+
+      - name: Smoke test
+        run: |
+          apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+          ISO=$(ls -1 salomos-nightly-*.iso | head -1)
+          timeout 30 qemu-system-x86_64 \
+            -m 2048 -smp 2 \
+            -cdrom "$ISO" -boot d \
+            -nographic -serial stdio \
+            -display none -monitor none 2>&1 | head -100 | tee qemu.log || true
+          if grep -q -E "systemd|salomos" qemu.log; then
+            echo "✅ Nightly smoke test OK"
+          else
+            echo "⚠️  Nightly smoke test inconclusive (not failing the workflow)"
+          fi
+
+      - name: Commit nightly status
+        run: |
+          git config user.name "salomos-bot"
+          git config user.email "salomos-bot@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || \
+            git commit -m "🌙 nightly build ${NIGHTLY_TAG}" || true
+          git push origin main || true

@@ -1,0 +1,3 @@
+#!/bin/bash
+# /usr/bin/salomos-installer — SalomOS first-boot wizard
+exec python3 -m salomos_installer "$@"

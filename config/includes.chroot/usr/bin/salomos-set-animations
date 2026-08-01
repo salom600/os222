@@ -1,0 +1,7 @@
+#!/bin/bash
+# /usr/bin/salomos-set-animations — adjust animation speed (0.0 - 2.0)
+set -e
+SPEED="${1:-1.0}"
+kwriteconfig6 --file kdeglobals --group KDE --key AnimationDurationFactor "$SPEED"
+qdbus org.kde.KWin /KWin reconfigure 2>/dev/null || true
+echo "Animation speed set to $SPEED"

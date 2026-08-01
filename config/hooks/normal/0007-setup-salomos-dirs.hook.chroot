@@ -1,0 +1,105 @@
+#!/bin/sh
+# 0007-setup-salomos-dirs.hook.chroot
+# Create canonical SalomOS directories and set permissions.
+set -e
+
+echo "[0007] Creating SalomOS system directories..."
+
+mkdir -p /var/lib/salomos
+mkdir -p /var/log/salomos
+mkdir -p /etc/salomos
+mkdir -p /usr/share/salomos/{themes,wallpapers,sounds,icons,cursors,locale}
+mkdir -p /usr/share/applications/salomos
+mkdir -p /var/cache/salomos
+mkdir -p /opt/salomos
+
+# Default SalomOS config
+cat > /etc/salomos/salomos.conf <<'EOF'
+# SalomOS global configuration
+# This file is read by all salomos-* tools. Do not edit by hand unless you know what you're doing.
+
+[meta]
+version=1.0.0-salom
+codename=Aurora
+release_date=2026-Q3
+build_id=BUILDID
+support_url=https://github.com/salom600/os222/issues
+community_url=https://github.com/salom600/os222/discussions
+
+[ui]
+default_theme=win11   # win11 | macos | breeze
+default_dark=true
+animations=true
+transparency=0.85
+corner_radius=8
+font_scaling=1.0
+icon_theme=salomos
+
+[store]
+auto_refresh=true
+refresh_interval_hours=6
+show_native=true
+show_flatpak=true
+show_snap=false
+curated_only=false
+auto_install_drivers=true
+
+[hw]
+auto_detect_gpu=true
+auto_install_drivers=true
+nvidia_driver=nvidia-driver
+mesa_driver=mesa-vulkan-drivers
+
+[updates]
+channel=stable
+auto_check=true
+auto_apply_security=true
+auto_apply_regular=false
+notify_reboot_required=true
+
+[backup]
+default_tool=timeshift
+schedule=daily
+keep_count=7
+
+[telemetry]
+enabled=false
+anonymous_pings=true
+EOF
+
+# Distribution identification
+cat > /etc/lsb-release <<EOF
+DISTRIB_ID=SalomOS
+DISTRIB_RELEASE=1.0
+DISTRIB_CODENAME=Aurora
+DISTRIB_DESCRIPTION="SalomOS 1.0 Aurora"
+EOF
+
+cat > /etc/os-release <<EOF
+NAME="SalomOS"
+VERSION="1.0 (Aurora)"
+ID=salomos
+ID_LIKE=debian
+PRETTY_NAME="SalomOS 1.0 Aurora"
+VERSION_ID="1.0"
+HOME_URL="https://github.com/salom600/os222"
+SUPPORT_URL="https://github.com/salom600/os222/issues"
+BUG_REPORT_URL="https://github.com/salom600/os222/issues"
+SALOMOS_CODENAME="Aurora"
+EOF
+
+# Hostname helper
+echo "salomos" > /etc/hostname
+sed -i 's/^127.0.1.1.*/127.0.1.1\tsalomos/' /etc/hosts
+
+# Locale defaults
+sed -i 's/^# *en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
+sed -i 's/^# *ar_SA.UTF-8/ar_SA.UTF-8/' /etc/locale.gen
+sed -i 's/^# *fr_FR.UTF-8/fr_FR.UTF-8/' /etc/locale.gen
+sed -i 's/^# *es_ES.UTF-8/es_ES.UTF-8/' /etc/locale.gen
+sed -i 's/^# *de_DE.UTF-8/de_DE.UTF-8/' /etc/locale.gen
+sed -i 's/^# *ru_RU.UTF-8/ru_RU.UTF-8/' /etc/locale.gen
+sed -i 's/^# *zh_CN.UTF-8/zh_CN.UTF-8/' /etc/locale.gen
+locale-gen
+
+echo "[0007] SalomOS directories created."

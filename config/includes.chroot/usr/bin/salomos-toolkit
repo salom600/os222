@@ -1,0 +1,3 @@
+#!/bin/bash
+# Wrapper to invoke salomos-toolkit from PATH
+exec python3 -m salomos_toolkit "$@"

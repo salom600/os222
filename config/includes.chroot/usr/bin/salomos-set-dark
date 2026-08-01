@@ -1,0 +1,16 @@
+#!/bin/bash
+# /usr/bin/salomos-set-dark — toggle dark mode
+set -e
+VAL="${1:-yes}"
+case "$VAL" in
+  yes|true|1|on)
+    lookandfeeltool -a org.kde.breezedark.desktop
+    plasma-apply-colorscheme BreezeClassicDark
+    ;;
+  no|false|0|off)
+    lookandfeeltool -a org.kde.breeze.desktop
+    plasma-apply-colorscheme BreezeClassicLight
+    ;;
+  *)
+    echo "Use yes/no" >&2; exit 1 ;;
+esac

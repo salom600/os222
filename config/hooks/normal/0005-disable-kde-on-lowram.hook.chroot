@@ -1,0 +1,42 @@
+#!/bin/sh
+# 0005-disable-kde-on-lowram.hook.chroot
+# Detect RAM at first boot and choose DE accordingly.
+# At chroot-build time we only set the default; the live-config script re-evaluates.
+
+set -e
+
+# Create the live-config decision script
+cat > /usr/lib/live/config/0020-salomos-de-select <<'EOF'
+#!/bin/sh
+# Live-config: choose between KDE and XFCE based on RAM.
+set -e
+
+LOG="/var/log/salomos-de-select.log"
+echo "[$(date)] Starting DE selection" > "$LOG"
+
+TOTAL_RAM_KB=$(awk '/MemTotal/ {print $2}' /proc/meminfo 2>/dev/null || echo 2097152)
+TOTAL_RAM_MB=$((TOTAL_RAM_KB / 1024))
+
+echo "Detected RAM: ${TOTAL_RAM_MB} MB" >> "$LOG"
+
+# Threshold: 2 GB. Below = XFCE.
+if [ "$TOTAL_RAM_MB" -lt 2048 ]; then
+  echo "Low RAM detected — switching to XFCE" >> "$LOG"
+  # Disable SDDM, enable LightDM
+  systemctl disable sddm 2>/dev/null || true
+  systemctl enable lightdm 2>/dev/null || true
+  # Override default DE
+  update-alternatives --set x-session-manager /usr/bin/startxfce4 2>/dev/null || true
+  echo "XFCE" > /var/lib/salomos/desktop
+else
+  echo "Sufficient RAM — keeping KDE Plasma" >> "$LOG"
+  echo "KDE" > /var/lib/salomos/desktop
+fi
+EOF
+
+chmod +x /usr/lib/live/config/0020-salomos-de-select
+
+# Ensure the dir exists
+mkdir -p /var/lib/salomos
+
+echo "[0005] DE selection hook installed."

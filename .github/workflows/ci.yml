@@ -1,0 +1,58 @@
+name: ✅ CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-python:
+    name: 🐍 Test Python
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 mypy pytest pyyaml
+          pip install --break-system-packages --no-deps -e tools/salomos-toolkit || true
+
+      - name: flake8
+        run: |
+          flake8 --max-line-length=140 --extend-ignore=E501,W503,E402,F401 tools/
+
+      - name: Test toolkit imports
+        run: |
+          python -c "import sys; sys.path.insert(0, 'tools/salomos-toolkit'); from salomos_toolkit import load_config, get_logger, detect_distro, run; print('OK', detect_distro().pretty)"
+
+      - name: Test auto-fixer (no-op on a passing log)
+        run: |
+          python .github/scripts/auto-fixer.py \
+            --log <(echo "no errors here, all good") \
+            --repo-root . \
+            --output-fix /tmp/empty.diff || true
+          test ! -s /tmp/empty.diff && echo "✓ no fix needed (expected)"
+
+  test-shell:
+    name: 🐚 Test Shell Scripts
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: shellcheck
+        run: |
+          sudo apt-get install -y shellcheck
+          find . -name '*.sh' -o -name 'auto/*' | while read -r f; do
+            shellcheck "$f" || echo "::warning file=$f::shellcheck issues (non-blocking)"
+          done

@@ -1,0 +1,69 @@
+#!/bin/sh
+# 0002-install-salomos-tools.hook.chroot
+# Install the SalomOS first-party Python/QML apps from the includes.chroot tree.
+set -e
+
+echo "[0002] Installing SalomOS first-party tools..."
+
+# Install Python deps system-wide
+pip3 install --break-system-packages --no-cache-dir \
+  PyQt6 \
+  PyQt6-Qt6 \
+  PyQt6-sip \
+  PyQt6-Charts \
+  PyQt6-WebEngine \
+  PyQt6-WebEngine-Qt6 \
+  PyQt6-NetworkAuth \
+  PyQt6-QtMultimedia \
+  PyQt6-QtMultimediaWidgets \
+  PyQt6-QtPositioning \
+  PyQt6-QtRemoteObjects \
+  PyQt6-QtSensors \
+  PyQt6-QtSerialPort \
+  PyQt6-QtSql \
+  PyQt6-QtSvg \
+  PyQt6-QtSvgWidgets \
+  PyQt6-QtTest \
+  PyQt6-QtWebChannel \
+  PyQt6-QtWebSockets \
+  PyQt6-QtXml \
+  requests \
+  PyYAML \
+  tomli \
+  distro \
+  psutil \
+  py-cpuinfo \
+  GPUtil \
+  pyamdgpuinfo \
+  py3nvml \
+  python-xlib \
+  dbus-python \
+  pyinotify \
+  pyelftools \
+  pygments \
+  markdown \
+  pillow \
+  qrcode \
+  pillow_heif \
+  packaging 2>/dev/null || \
+pip3 install --no-cache-dir \
+  PyQt6 \
+  requests \
+  PyYAML \
+  distro \
+  psutil \
+  py-cpuinfo \
+  python-xlib \
+  dbus-python \
+  pyelftools \
+  pygments \
+  pillow
+
+# Symlink our salomos tools to /usr/local/bin
+for tool in salomos-store salomos-control salomos-hwmanager salomos-installer salomos-launcher salomos-toolkit; do
+  if [ -f /usr/bin/${tool} ]; then
+    chmod +x /usr/bin/${tool}
+  fi
+done
+
+echo "[0002] SalomOS tools installed."

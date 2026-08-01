@@ -1,0 +1,104 @@
+name: 🚀 Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    name: 📦 Build & Publish Release
+    runs-on: ubuntu-22.04
+    timeout-minutes: 480
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, arm64]
+    container:
+      image: debian:bookworm
+      options: --privileged --tmpfs /tmp:size=4g --tmpfs /var/cache:size=4g
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set up basic tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            sudo ca-certificates curl git gnupg wget \
+            python3 python3-pip \
+            live-build debootstrap squashfs-tools xorriso isolinux syslinux-common \
+            grub-pc-bin grub-efi-amd64-bin grub-efi-arm64-bin grub-common \
+            fakeroot linux-image-amd64 linux-image-arm64
+
+      - name: Determine version
+        id: ver
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build ISO
+        run: |
+          set -e
+          ./auto/config ${{ matrix.arch }} bookworm
+          time ./auto/build 2>&1 | tee build.log
+
+      - name: Generate checksums
+        run: |
+          ISO=$(ls -1 live-image-*.hybrid.iso | head -1)
+          sha256sum "$ISO" | tee "$ISO.sha256"
+          b2sum "$ISO" | tee "$ISO.b2"
+          gpg --batch --pinentry-mode loopback --passphrase "" --armor \
+            --detach-sign "$ISO" 2>/dev/null || true
+
+      - name: Upload to release (amg64 only)
+        if: matrix.arch == 'amd64'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.version }}
+          name: 'SalomOS ${{ steps.ver.outputs.version }}'
+          body: |
+            # SalomOS ${{ steps.ver.outputs.version }}
+
+            The latest stable release of SalomOS — sleek, modern, lightweight.
+
+            ## Downloads
+
+            - **salomos-${{ steps.ver.outputs.version }}-amd64.iso** — main image (Intel / AMD 64-bit)
+            - **salomos-${{ steps.ver.outputs.version }}-arm64.iso** — ARM 64-bit (Raspberry Pi 4+, Apple Silicon VMs)
+
+            ## Verify
+
+            ```bash
+            sha256sum -c salomos-${{ steps.ver.outputs.version }}-amd64.iso.sha256
+            ```
+
+            ## Installation
+
+            See [INSTALL.md](https://github.com/salom600/os222/blob/main/docs/INSTALL.md).
+
+            ## What's in this release
+
+            See [CHANGELOG.md](https://github.com/salom600/os222/blob/main/CHANGELOG.md).
+          files: |
+            live-image-*.hybrid.iso
+            live-image-*.iso.sha256
+            live-image-*.iso.b2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

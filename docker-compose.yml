@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  build:
+    build: .
+    image: salomos-builder:latest
+    privileged: true
+    tmpfs:
+      - /tmp:size=4g
+      - /var/cache:size=4g
+    volumes:
+      - .:/salomos
+    working_dir: /salomos
+    command: ["./scripts/build.sh", "amd64"]

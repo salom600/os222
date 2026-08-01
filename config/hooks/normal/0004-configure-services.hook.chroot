@@ -1,0 +1,49 @@
+#!/bin/sh
+# 0004-configure-services.hook.chroot
+# Enable systemd services for SalomOS.
+set -e
+
+echo "[0004] Enabling system services..."
+
+SERVICES="
+NetworkManager.service
+systemd-resolved.service
+bluetooth.service
+cups.service
+cups-browsed.service
+firewalld.service
+tlp.service
+power-profiles-daemon.service
+fwupd.service
+apparmor.service
+pipewire.service
+pipewire-pulse.service
+wireplumber.service
+flatpak-system-helper.service
+unattended-upgrades.service
+"
+
+for svc in $SERVICES; do
+  if [ -f /lib/systemd/system/$svc ] || [ -f /usr/lib/systemd/system/$svc ]; then
+    systemctl enable $svc 2>/dev/null || true
+  fi
+done
+
+# Mask services we never want
+systemctl mask systemd-rfkill.socket 2>/dev/null || true
+
+# Enable SalomOS first-boot wizard
+systemctl enable salomos-firstboot.service 2>/dev/null || true
+
+# Enable Salomon auto-update timer
+systemctl enable salomos-update.service 2>/dev/null || true
+systemctl enable salomos-update.timer 2>/dev/null || true
+
+# Enable daily zram configuration
+systemctl enable salomos-zram.service 2>/dev/null || true
+
+# Disable SSH server by default
+systemctl disable ssh.service 2>/dev/null || true
+systemctl disable sshd.service 2>/dev/null || true
+
+echo "[0004] Services configured."

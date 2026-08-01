@@ -1,0 +1,31 @@
+#!/bin/sh
+# 0008-secure-boot-shim.hook.chroot
+# Configure shim and signed GRUB for UEFI Secure Boot.
+set -e
+
+echo "[0008] Configuring Secure Boot shim..."
+
+# Copy MOK (Machine Owner Key) management tools
+if [ -x /usr/bin/mokutil ]; then
+  echo "mokutil available" || true
+fi
+
+# GRUB config for SalomOS branding
+mkdir -p /etc/default
+cat > /etc/default/grub.d/salomos.cfg <<'EOF'
+GRUB_DISTRIBUTOR="SalomOS"
+GRUB_TIMEOUT=5
+GRUB_TIMEOUT_STYLE=menu
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash loglevel=3 rd.udev.log_priority=3 vt.global_cursor_default=0"
+GRUB_THEME="/usr/share/grub/themes/salomos/theme.txt"
+GRUB_GFXMODE=1920x1080,1366x768,auto
+GRUB_BACKGROUND="/usr/share/backgrounds/salomos/wallpaper-grub.png"
+GRUB_ENABLE_BLSCFG=true
+EOF
+
+# Re-generate grub config
+if [ -x /usr/sbin/update-grub ]; then
+  update-grub 2>/dev/null || true
+fi
+
+echo "[0008] Secure Boot shim configured."

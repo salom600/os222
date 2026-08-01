@@ -1,0 +1,51 @@
+name: Bug Report
+description: Something isn't working as expected.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: severity
+    valid_values: ["blocker", "critical", "major", "minor", "trivial"]
+    attributes:
+      label: Severity
+      description: How bad is the issue?
+  - type: input
+    id: version
+    attributes:
+      label: SalomOS version
+      placeholder: "e.g. 1.0.0-salom (Aurora)"
+  - type: dropdown
+    id: de
+    valid_values: ["KDE Plasma 6", "XFCE", "Other"]
+    attributes:
+      label: Desktop environment
+  - type: input
+    id: hardware
+    attributes:
+      label: Hardware
+      description: "GPU, CPU, RAM. e.g. 'NVIDIA RTX 3060, AMD Ryzen 5 5600X, 16 GB'"
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      placeholder: |
+        Describe the issue.
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Boot into SalomOS
+        2. Open the Store
+        3. Click "Install" on Firefox
+        4. See error
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      placeholder: |
+        Output of `journalctl -b`, `dmesg`, etc.

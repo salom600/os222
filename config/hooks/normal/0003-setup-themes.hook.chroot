@@ -1,0 +1,79 @@
+#!/bin/sh
+# 0003-setup-themes.hook.chroot
+# Configure default theme, fonts, and KDE global defaults.
+set -e
+
+echo "[0003] Setting up default themes and KDE globals..."
+
+# Default global KDE theme — will be overridden by salomos-installer on first boot
+mkdir -p /etc/xdg
+
+cat > /etc/xdg/kdeglobals <<'EOF'
+[General]
+ColorScheme=BreezeClassicDark
+Name=SalomOS
+fixed=JetBrains Mono,10,-1,5,50,0,0,0,0,0
+font=Inter,10,-1,5,50,0,0,0,0,0
+menuFont=Inter,10,-1,5,50,0,0,0,0,0
+smallestReadableFont=Inter,8,-1,5,50,0,0,0,0,0
+toolBarFont=Inter,9,-1,5,50,0,0,0,0,0
+
+[Icons]
+Theme=Papirus-Dark
+
+[KDE]
+AnimationDurationFactor=0.4
+ColorScheme=BreezeClassicDark
+LookAndFeelPackage=org.kde.breezedark.desktop
+SingleClick=false
+widgetStyle=Breeze
+
+[org.kde.kdecoration2]
+ButtonsOnLeft=XIA
+ButtonsOnRight=
+library=org.kde.breeze
+theme=Breeze
+
+[org.kde.plasma.desktop.defaultPanel]
+alignment=0
+location=3
+EOF
+
+# Default fonts
+cat > /etc/xdg/fontconfig/fonts.conf <<'EOF'
+<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+  <alias>
+    <family>serif</family>
+    <prefer><family>Noto Serif</family></prefer>
+  </alias>
+  <alias>
+    <family>sans-serif</family>
+    <prefer><family>Inter</family><family>Noto Sans</family></prefer>
+  </alias>
+  <alias>
+    <family>monospace</family>
+    <prefer><family>JetBrains Mono</family><family>Hack</family></prefer>
+  </alias>
+  <alias>
+    <family>system-ui</family>
+    <prefer><family>Inter</family></prefer>
+  </alias>
+  <hintstyle>hintfull</hintstyle>
+  <antialias>true</antialias>
+  <hinting>true</hinting>
+  <rgba>rgb</rgba>
+  <lcdfilter>lcddefault</lcdfilter>
+</fontconfig>
+EOF
+
+# Set default Plymouth theme
+update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/salomos/salomos.plymouth 200 2>/dev/null || true
+
+# Update initramfs so Plymouth theme is in the boot image
+if [ -x /usr/sbin/update-initramfs ]; then
+  update-initramfs -u
+fi
+
+echo "[0003] Theme setup complete."

@@ -1,0 +1,15 @@
+[Unit]
+Description=SalomOS First-Boot Setup Wizard
+After=graphical.target NetworkManager.service
+Wants=graphical.target
+ConditionPathExists=!/var/lib/salomos/firstboot.done
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/salomos-installer
+Restart=no
+StandardInput=tty
+StandardOutput=journal
+
+[Install]
+WantedBy=graphical.target

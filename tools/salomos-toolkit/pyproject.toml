@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "salomos-toolkit"
+version = "1.0.0"
+description = "Common library shared by all SalomOS native tools."
+readme = "README.md"
+license = {text = "GPL-3.0-or-later"}
+authors = [{name = "SalomOS Project", email = "salomos@salom600.github.io"}]
+requires-python = ">=3.11"
+classifiers = [
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Operating System",
+]
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["salomos_toolkit*"]

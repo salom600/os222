@@ -1,0 +1,3 @@
+#!/bin/bash
+# /usr/bin/salomos-hwmanager-daemon — wrapper for systemd
+exec python3 -m salomos_hwmanager.daemon

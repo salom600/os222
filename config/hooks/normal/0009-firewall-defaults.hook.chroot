@@ -1,0 +1,34 @@
+#!/bin/sh
+# 0009-firewall-defaults.hook.chroot
+# Configure default firewall rules via firewalld.
+set -e
+
+echo "[0009] Configuring firewall defaults..."
+
+cat > /etc/firewalld/firewalld.conf <<'EOF'
+# SalomOS firewalld defaults
+DefaultZone=public
+MinimalMark=100
+CleanupOnExit=yes
+Lockdown=no
+IPv6_rpfilter=yes
+IndividualCalls=no
+LogDenied=off
+AutomaticHelpers=system
+FirewallBackend=nftables
+FlushAllOnReload=yes
+RFC3964_IPv4=no
+AllowZoneDrifting=no
+EOF
+
+# Default zone public — allow SSH only via toggling
+firewall-offline-cmd --set-default-zone=public 2>/dev/null || true
+firewall-offline-cmd --zone=public --add-service=mdns 2>/dev/null || true
+firewall-offline-cmd --zone=public --add-service=samba-client 2>/dev/null || true
+firewall-offline-cmd --zone=public --add-service=upnp-client 2>/dev/null || true
+
+# AppArmor — enable all profiles in enforce mode
+mkdir -p /etc/apparmor.d/local
+aa-enforce /etc/apparmor.d/* 2>/dev/null || true
+
+echo "[0009] Firewall configured."

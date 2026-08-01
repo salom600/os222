@@ -1,0 +1,12 @@
+[Unit]
+Description=SalomOS Hardware Manager — auto-detect and install GPU drivers
+After=systemd-modules-load.service
+Before=graphical.target display-manager.service
+ConditionPathExists=!/var/lib/salomos/hwmanager.done
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/salomos-hwmanager-daemon
+TimeoutStartSec=900
+
+[Install]
+WantedBy=multi-user.target

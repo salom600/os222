@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=First-Boot Setup
+Comment=Configure SalomOS for the first time
+Exec=salomos-installer
+Icon=salomos-installer
+Categories=System;
+Keywords=setup;firstboot;wizard;install;
+StartupNotify=true
+Terminal=false

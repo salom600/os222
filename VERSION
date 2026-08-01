@@ -1,0 +1,6 @@
+SALOMOS_VERSION="1.0.0-salom"
+SALOMOS_CODENAME="Aurora"
+SALOMOS_BASE="debian-bookworm"
+SALOMOS_DE="kde-plasma-6"
+SALOMOS_ARCH_SUPPORT="amd64,i386,arm64"
+SALOMOS_BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"

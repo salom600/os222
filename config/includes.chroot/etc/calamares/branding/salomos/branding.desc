@@ -1,0 +1,84 @@
+---
+# SalomOS branding for Calamares
+componentName: salomos
+version: 1.0.0
+shortVersion: 1.0
+versionedName: SalomOS 1.0 Aurora
+shortVersionedName: SalomOS
+excerpt: A sleek, modern, ultra-lightweight Linux distribution.
+fullName: SalomOS 1.0 Aurora
+shortName: SalomOS
+url: https://github.com/salom600/os222
+supportUrl: https://github.com/salom600/os222/issues
+bugReportUrl: https://github.com/salom600/os222/issues
+releaseNotesUrl: https://github.com/salom600/os222/releases
+licenseUrl: https://www.gnu.org/licenses/gpl-3.0.html
+donateUrl: https://github.com/salom600/os222
+
+slideshow: /usr/share/calamares/branding/salomos/slideshow/
+welcomeStyle: ../data/salomos/welcome.qss
+windowImage: /usr/share/calamares/branding/salomos/welcome.png
+productIcon: /usr/share/calamares/branding/salomos/logo.png
+productLogo: /usr/share/calamares/branding/salomos/logo.png
+
+# The image shown on the welcome screen
+image: /usr/share/calamares/branding/salomos/welcome.png
+
+# Slideshow images
+slideshow: /usr/share/calamares/branding/salomos/slideshow
+
+# Booting logo
+image-sidebar: /usr/share/calamares/branding/salomos/sidebar.png
+
+# The text shown beneath the image on the welcome page
+strings:
+  welcomeMessage: "Welcome to <strong>SalomOS 1.0 Aurora</strong> — a sleek, modern, ultra-lightweight Linux distribution. Click <em>Next</em> to begin the installation."
+  language: "Language"
+  location: "Location"
+  keyboard: "Keyboard"
+  partition: "Partition"
+  users: "Users"
+  summary: "Summary"
+  install: "Install"
+  finished: "Finished"
+  installationSettings: "Installation settings"
+  installationProgress: "Installation progress"
+  installationComplete: "Installation complete"
+  installationFailed: "Installation failed"
+  installationCanceled: "Installation canceled"
+  quit: "Quit"
+  about: "About"
+  reboot: "Reboot"
+  next: "Next"
+  back: "Back"
+  cancel: "Cancel"
+  close: "Close"
+
+style:
+  sidebarBackground: "#14161b"
+  sidebarText: "#e8eaed"
+  sidebarTextHighlight: "#1a73e8"
+  sidebarSelect: "#1a73e8"
+
+sidebar:
+  - name: welcome
+    image: /usr/share/calamares/branding/salomos/icon-welcome.png
+    tooltip: "Welcome to SalomOS"
+  - name: locale
+    image: /usr/share/calamares/branding/salomos/icon-locale.png
+    tooltip: "Where are you?"
+  - name: keyboard
+    image: /usr/share/calamares/branding/salomos/icon-keyboard.png
+    tooltip: "Keyboard layout"
+  - name: partition
+    image: /usr/share/calamares/branding/salomos/icon-partition.png
+    tooltip: "Where to install?"
+  - name: users
+    image: /usr/share/calamares/branding/salomos/icon-users.png
+    tooltip: "Create your account"
+  - name: summary
+    image: /usr/share/calamares/branding/salomos/icon-summary.png
+    tooltip: "Review and install"
+  - name: finished
+    image: /usr/share/calamares/branding/salomos/icon-finished.png
+    tooltip: "All done!"

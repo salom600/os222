@@ -1,0 +1,36 @@
+#!/bin/bash
+# /usr/bin/salomos-set-accent — change the global accent color
+set -e
+COLOR="${1:-#1a73e8}"
+USER_HOME=$(getent passwd "${SUDO_USER:-$USER}" | cut -d: -f6)
+
+# Write a custom Plasma colorscheme with the user's accent
+SCHEME_FILE="/usr/share/color-schemes/SalomOSAccent.colors"
+cat > "$SCHEME_FILE" <<EOF
+[General]
+Name=SalomOS Accent
+ColorScheme=BreezeClassicDark
+Description=SalomOS accent scheme
+
+[Colors:Window]
+BackgroundNormal=#23272e
+BackgroundAlternate=#2a2f37
+ForegroundNormal=#e8eaed
+ForegroundActive=${COLOR}
+DecorationFocus=${COLOR}
+DecorationHover=${COLOR}
+
+[Colors:Selection]
+BackgroundNormal=${COLOR}
+BackgroundAlternate=${COLOR}
+ForegroundNormal=#ffffff
+
+[Colors:Button]
+ForegroundActive=${COLOR}
+
+[Effects]
+EnableAnimations=true
+EOF
+
+plasma-apply-colorscheme SalomOSAccent
+echo "Accent set to ${COLOR}"

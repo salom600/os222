@@ -1,0 +1,29 @@
+name: Build Failure
+description: Report a CI build failure.
+title: "[Build]: "
+labels: ["build-failure", "ci"]
+body:
+  - type: input
+    id: run_id
+    attributes:
+      label: Workflow run ID
+      description: "The number at the end of the workflow run URL"
+  - type: input
+    id: branch
+    attributes:
+      label: Branch
+      default: main
+  - type: input
+    id: arch
+    attributes:
+      label: Architecture
+      default: amd64
+  - type: dropdown
+    id: autofix
+    valid_values: ["succeeded (PR opened)", "failed (no rule matched)", "in progress", "n/a"]
+    attributes:
+      label: Did the auto-fixer open a PR?
+  - type: textarea
+    id: log_tail
+    attributes:
+      label: Last 30 lines of the build log

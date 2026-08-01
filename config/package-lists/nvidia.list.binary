@@ -1,0 +1,27 @@
+# NVIDIA proprietary driver list (selected at install time by salomos-hwmanager)
+# The hwmanager script pulls from contrib/non-free to fetch the matching version.
+nvidia-driver
+nvidia-driver-libs
+nvidia-driver-bin
+nvidia-kernel-dkms
+nvidia-cuda-toolkit
+nvidia-cuda-dev
+nvidia-cuda-doc
+nvidia-cuda-gdb
+nvidia-settings
+nvidia-xconfig
+nvidia-prime
+nvidia-vulkan-icd
+nvidia-opencl-icd
+nvidia-opencl-common
+libnvcuvid1
+libnvidia-encode1
+libnvidia-decode1
+libnvidia-fbc1
+libnvidia-ifr1
+libnvidia-ml1
+libcuda1
+libcudart12
+libcudnn8
+cuda-drivers
+firmware-misc-nonfree

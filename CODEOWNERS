@@ -1,0 +1,28 @@
+# CODEOWNERS — who's responsible for what
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default: maintainers
+*                                       @salom600
+
+# Core build system
+/auto/                                  @salom600
+/config/hooks/                          @salom600
+/config/package-lists/                  @salom600
+
+# Native tools
+/tools/salomos-store/                   @salom600
+/tools/salomos-hwmanager/               @salom600
+/tools/salomos-control/                 @salom600
+/tools/salomos-installer/               @salom600
+/tools/salomos-launcher/                @salom600
+/tools/salomos-toolkit/                 @salom600
+
+# CI/CD
+/.github/workflows/                     @salom600
+/.github/scripts/                       @salom600
+
+# Docs
+/docs/                                  @salom600
+
+# Branding
+/branding/                              @salom600

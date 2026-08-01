@@ -1,0 +1,14 @@
+# SalomOS first-party packages
+# These get installed via .deb packages built by CI before the live-build chroot stage,
+# OR via direct copy in config/includes.chroot + hooks.
+
+salomos-store
+salomos-control
+salomos-hwmanager
+salomos-installer
+salomos-launcher
+salomos-calamares-config
+salomos-grub-theme
+salomos-sddm-theme
+salomos-plymouth-theme
+salomos-toolkit

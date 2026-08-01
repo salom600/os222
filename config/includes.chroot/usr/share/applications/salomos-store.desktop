@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=SalomOS Store
+GenericName=App Store
+Comment=Discover and install applications
+Exec=salomos-store gui %F
+Icon=salomos-store
+Categories=System;PackageManager;
+Keywords=app;store;install;package;software;flatpak;
+StartupNotify=true
+StartupWMClass=SalomOS Store
+Terminal=false

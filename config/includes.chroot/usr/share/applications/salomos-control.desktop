@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=SalomOS Control Center
+GenericName=System Settings
+Comment=Configure your SalomOS system
+Exec=salomos-control %F
+Icon=salomos-control
+Categories=Settings;DesktopSettings;X-KDE-settings-system;
+Keywords=settings;control;preferences;configuration;admin;
+StartupNotify=true
+Terminal=false

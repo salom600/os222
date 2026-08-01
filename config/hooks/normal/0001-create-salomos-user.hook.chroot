@@ -1,0 +1,27 @@
+#!/bin/sh
+# 0001-create-salomos-user.hook.chroot
+# Create the default `salom` user with home, shell, and groups.
+set -e
+
+echo "[0001] Creating salom user..."
+
+if ! id salom >/dev/null 2>&1; then
+  adduser --disabled-password --gecos "SalomOS User" --shell /bin/bash salom
+fi
+
+# Add user to the canonical desktop groups
+for g in audio cdrom dialout floppy netdev plugdev sudo video kvm libvirt render bluetooth lpadmin scanner; do
+  if getent group "$g" >/dev/null; then
+    adduser salom "$g" 2>/dev/null || true
+  fi
+done
+
+# Allow passwordless sudo for the live session only
+echo "salom ALL=(ALL) NOPASSWD: ALL" >/etc/sudoers.d/90-salom-live
+chmod 0440 /etc/sudoers.d/90-salom-live
+
+# Set a default password (only used in live mode)
+echo "salom:salom" | chpasswd
+echo "root:root" | chpasswd
+
+echo "[0001] User created."

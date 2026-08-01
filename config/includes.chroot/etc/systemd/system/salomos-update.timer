@@ -1,0 +1,10 @@
+[Unit]
+Description=SalomOS weekly auto-update
+
+[Timer]
+OnCalendar=weekly
+Persistent=true
+RandomizedDelaySec=3600
+
+[Install]
+WantedBy=timers.target

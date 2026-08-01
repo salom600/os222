@@ -1,0 +1,10 @@
+#!/bin/bash
+# /usr/bin/salomos-update — run the system update
+set -e
+echo "==> Refreshing package lists..."
+sudo apt-get update -y
+echo "==> Applying security updates..."
+sudo unattended-upgrade -v
+echo "==> Listing upgradable packages..."
+apt list --upgradable
+echo "==> Done. Run 'sudo apt full-upgrade' to apply non-security updates."

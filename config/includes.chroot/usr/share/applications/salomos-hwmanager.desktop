@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=SalomOS Hardware Manager
+GenericName=Hardware Manager
+Comment=Detect and install drivers for GPU, network, and storage
+Exec=salomos-hwmanager gui %F
+Icon=salomos-hwmanager
+Categories=Settings;HardwareSettings;X-KDE-settings-hardware;
+Keywords=driver;hardware;gpu;network;nvidia;amd;intel;wifi;
+StartupNotify=true
+Terminal=false

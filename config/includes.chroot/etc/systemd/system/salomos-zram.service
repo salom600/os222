@@ -1,0 +1,11 @@
+[Unit]
+Description=SalomOS ZRAM swap setup
+After=local-fs.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/salomos-zram
+
+[Install]
+WantedBy=multi-user.target

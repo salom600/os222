@@ -1,0 +1,11 @@
+#!/bin/bash
+# /usr/bin/salomos-zram — configure zram swap to 50% of RAM
+set -e
+TOTAL_KB=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
+ZRAM_KB=$((TOTAL_KB / 2))
+modprobe zram || true
+echo lz4 > /sys/block/zram0/comp_algorithm 2>/dev/null || true
+echo $ZRAM_KB > /sys/block/zram0/disksize
+mkswap /dev/zram0
+swapon -p 100 /dev/zram0
+echo "zram: $(($ZRAM_KB/1024)) MB swap created"

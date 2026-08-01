@@ -1,0 +1,38 @@
+#!/bin/bash
+# /usr/bin/salomos-set-theme — switch between Win11 / macOS / Breeze
+set -e
+THEME="${1:-win11}"
+USER_HOME=$(getent passwd "${SUDO_USER:-$USER}" | cut -d: -f6)
+echo "Setting SalomOS theme: $THEME (for $USER_HOME)"
+
+case "$THEME" in
+  win11)
+    lookandfeeltool -a org.kde.breezedark.desktop
+    plasma-apply-colorscheme BreezeClassicDark
+    plasma-apply-icontheme Papirus-Dark
+    sudo -u "${SUDO_USER:-$USER}" plasma-apply-cursortheme Breeze
+    sudo -u "${SUDO_USER:-$USER}" plasma-apply-lookandfeel org.kde.breezedark.desktop
+    ;;
+  macos)
+    lookandfeeltool -a org.kde.whitesur.desktop 2>/dev/null || \
+    lookandfeeltool -a org.kde.breezedark.desktop
+    plasma-apply-colorschcheme WhiteSurDark 2>/dev/null || plasma-apply-colorscheme BreezeClassicDark
+    plasma-apply-icontheme Whitesur-dark 2>/dev/null || plasma-apply-icontheme Papirus-Dark
+    ;;
+  breeze)
+    lookandfeeltool -a org.kde.breeze.desktop
+    plasma-apply-colorscheme Breeze
+    plasma-apply-icontheme breeze-icons
+    ;;
+  *)
+    echo "Unknown theme: $THEME (use win11 | macos | breeze)" >&2
+    exit 1
+    ;;
+esac
+
+# Persist in /etc/salomos/salomos.conf
+if [ -w /etc/salomos/salomos.conf ]; then
+  sed -i "s/^default_theme=.*/default_theme=$THEME/" /etc/salomos/salomos.conf
+fi
+
+echo "Theme applied. Sign out and back in for all changes to take effect."
