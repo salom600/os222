@@ -17,7 +17,7 @@ from PyQt6.QtWidgets import (
     QToolButton, QButtonGroup,
 )
 
-from salomos_toolkit import get_logger
+from salomos_toolkit import get_logger, run
 log = get_logger("salomos-store.ui")
 
 from ..backends import Store, App
