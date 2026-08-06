@@ -45,6 +45,7 @@ jobs:
       - name: Validate YAML / JSON
         run: |
           set -e
+          pip install --quiet pyyaml
           echo "::group::Validating YAML files"
           find . -name '*.yml' -o -name '*.yaml' | while read -r f; do
             python3 -c "import yaml; yaml.safe_load(open('$f'))" || { echo "YAML error in $f"; exit 1; }
